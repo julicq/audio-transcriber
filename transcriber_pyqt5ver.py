@@ -4,7 +4,10 @@ import json
 import vosk
 from pydub import AudioSegment
 import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QLabel, QLineEdit, QPushButton, QTextEdit, QFileDialog, QMessageBox, QProgressBar, QWidget
+from PyQt5.QtWidgets import (
+    QApplication, QMainWindow, QVBoxLayout, QLabel, QLineEdit, QPushButton, 
+    QTextEdit, QFileDialog, QMessageBox, QProgressBar, QWidget, QComboBox
+)
 from PyQt5.QtCore import Qt, QThread, pyqtSignal
 
 # Specify the path to the FFmpeg executable
@@ -89,6 +92,16 @@ class AudioTranscriberApp(QMainWindow):
         self.button_browse.clicked.connect(self.open_file)
         layout.addWidget(self.button_browse)
 
+        self.label_language = QLabel("Select Language:")
+        layout.addWidget(self.label_language)
+
+        self.language_selector = QComboBox()
+        self.language_selector.addItems([
+            "English", "Russian", "French", "German", 
+            "Italian", "Spanish", "Japanese"
+        ])
+        layout.addWidget(self.language_selector)
+
         self.button_transcribe = QPushButton("Transcribe")
         self.button_transcribe.clicked.connect(self.transcribe)
         layout.addWidget(self.button_transcribe)
@@ -120,7 +133,19 @@ class AudioTranscriberApp(QMainWindow):
 
     def transcribe(self):
         audio_path = self.entry_audio_path.text()
-        model_path = "vosk-model-small-ru-0.22"
+        language = self.language_selector.currentText()
+
+        model_paths = {
+            "English": "model\\vosk-model-small-en-us-0.15",
+            "Russian": "model\\vosk-model-small-ru-0.22",
+            "French": "model\\vosk-model-small-fr-0.22",
+            "German": "model\\vosk-model-small-de-0.15",
+            "Italian": "model\\vosk-model-small-it-0.22",
+            "Spanish": "model\\vosk-model-small-es-0.42",
+            "Japanese": "model\\vosk-model-small-ja-0.22",
+        }
+
+        model_path = model_paths[language]
         self.thread = TranscribeThread(audio_path, model_path)
         self.thread.finished.connect(self.transcription_finished)
         self.thread.update_progress.connect(self.update_progress)
@@ -128,6 +153,7 @@ class AudioTranscriberApp(QMainWindow):
         # Disable Browse and Transcribe buttons during transcription
         self.button_browse.setEnabled(False)
         self.button_transcribe.setEnabled(False)
+        self.button_save.setEnabled(False)
 
     def transcription_finished(self, transcript):
         self.text_output.setPlainText(transcript)
