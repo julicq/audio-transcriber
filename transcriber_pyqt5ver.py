@@ -103,14 +103,20 @@ class AudioTranscriberApp(QMainWindow):
         self.button_save.clicked.connect(self.save_transcription)
         layout.addWidget(self.button_save)
 
-        central_widget = QWidget()
-        central_widget.setLayout(layout)
-        self.setCentralWidget(central_widget)
+        self.central_widget = QWidget()
+        self.central_widget.setLayout(layout)
+        self.setCentralWidget(self.central_widget)
+
+        # Initially disable buttons
+        self.button_transcribe.setEnabled(False)
+        self.button_save.setEnabled(False)
 
     def open_file(self):
         file_path, _ = QFileDialog.getOpenFileName(self, "Open Audio File", "", "Audio Files (*.wav *.mp3)")
         if file_path:
             self.entry_audio_path.setText(file_path)
+            # Enable Transcribe button
+            self.button_transcribe.setEnabled(True)
 
     def transcribe(self):
         audio_path = self.entry_audio_path.text()
@@ -119,9 +125,16 @@ class AudioTranscriberApp(QMainWindow):
         self.thread.finished.connect(self.transcription_finished)
         self.thread.update_progress.connect(self.update_progress)
         self.thread.start()
+        # Disable Browse and Transcribe buttons during transcription
+        self.button_browse.setEnabled(False)
+        self.button_transcribe.setEnabled(False)
 
     def transcription_finished(self, transcript):
         self.text_output.setPlainText(transcript)
+        # Enable all buttons after transcription is finished
+        self.button_browse.setEnabled(True)
+        self.button_transcribe.setEnabled(True)
+        self.button_save.setEnabled(True)
 
     def update_progress(self, value):
         self.progress_bar.setValue(value)
