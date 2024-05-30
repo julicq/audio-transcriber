@@ -18,7 +18,7 @@ The Audio Transcriber is a simple Python program designed to transcribe audio fi
 3. Ensure you have FFmpeg installed and added to your system PATH for MP3 support.
 
 ## Usage
-1. Run the program by executing the `audio_transcriber.py` script.
+1. Run the program by executing the `transcribe_gui.py` (with TK UI) or `transcriber_py5ver.py` (with PyQT UI) script.
 2. In the GUI, click the "Browse" button to select an audio file (WAV or MP3) for transcription.
 3. Click the "Transcribe" button to start the transcription process.
 4. The transcribed text will be displayed in the text output area of the GUI.
@@ -27,8 +27,8 @@ The Audio Transcriber is a simple Python program designed to transcribe audio fi
 ## Dependencies
 - [Vosk](https://github.com/alphacep/vosk-api): Speech recognition library.
 - [Pydub](https://github.com/jiaaro/pydub): Audio processing library.
-- [NLTK](https://www.nltk.org/): Natural Language Toolkit for sentence tokenization. - REMOVED
-- [Razdel](https://github.com/natasha/razdel): Russian sentence segmentation library. - REMOVED
+- ~~[NLTK](https://www.nltk.org/): Natural Language Toolkit for sentence tokenization.~~ - REMOVED
+- ~~[Razdel](https://github.com/natasha/razdel): Russian sentence segmentation library.~~ - REMOVED
 - [PyQT5](https://pypi.org/project/PyQt5): UI added
 
 ## Contributing
