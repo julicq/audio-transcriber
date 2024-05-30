@@ -1,10 +1,12 @@
 import os
+import threading
 import wave
 import json
 import vosk
-import razdel
 from pydub import AudioSegment
+from tqdm import tqdm
 import tkinter as tk
+import tkinter.ttk as ttk
 from tkinter import filedialog, messagebox, scrolledtext
 
 # Specify the path to the FFmpeg executable
@@ -25,13 +27,19 @@ def transcribe_audio(audio_path, model_path):
     rec = vosk.KaldiRecognizer(model, wf.getframerate())
     result_text = ""
 
-    while True:
-        data = wf.readframes(4000)
-        if len(data) == 0:
-            break
-        if rec.AcceptWaveform(data):
-            result = json.loads(rec.Result())
-            result_text += result.get("text", "") + " "
+    chunk_size = 4000
+    total_frames = wf.getnframes()
+    with tqdm(total=total_frames, unit='frames', desc='Transcribing') as pbar:
+        while True:
+            data = wf.readframes(chunk_size)
+            if len(data) == 0:
+                break
+            if rec.AcceptWaveform(data):
+                result = json.loads(rec.Result())
+                result_text += result.get("text", "") + " "
+            pbar.update(len(data))
+            progress_bar["value"] = wf.tell() / total_frames * 100  # Update progress bar value
+            progress_bar.update()  # Force update of the progress bar in the GUI
     
     result_text += json.loads(rec.FinalResult()).get("text", "")
     return result_text
@@ -56,17 +64,31 @@ def transcribe():
     model_path = "vosk-model-small-ru-0.22"
     try:
         audio_path = convert_to_wav(audio_path)
-        transcript = transcribe_audio(audio_path, model_path)
         
-        # Punctuate the transcript
-        sentences = [sentence.text + "." for sentence in razdel.sentenize(transcript)]
-        punctuated_text = " ".join(sentences)
-        
-        # Display the punctuated text in the text output widget
-        text_output.delete(1.0, tk.END)
-        text_output.insert(tk.END, punctuated_text)
+        # Process in a separate thread to keep GUI responsive
+        threading.Thread(target=transcribe_thread, args=(audio_path, model_path)).start()
     except Exception as e:
         messagebox.showerror("Error", str(e))
+
+def transcribe_thread(audio_path, model_path):
+    try:
+        transcript = transcribe_audio(audio_path, model_path)
+        text_output.delete(1.0, tk.END)
+        text_output.insert(tk.END, transcript)
+    except Exception as e:
+        messagebox.showerror("Error", str(e))
+
+def save_to_file():
+    transcript = text_output.get("1.0", tk.END).strip()
+    if not transcript:
+        messagebox.showwarning("Warning", "No transcription to save.")
+        return
+    
+    file_path = filedialog.asksaveasfilename(defaultextension=".txt", filetypes=[("Text files", "*.txt"), ("All files", "*.*")])
+    if file_path:
+        with open(file_path, 'w', encoding='utf-8') as f:
+            f.write(transcript)
+        messagebox.showinfo("Success", f"Transcription saved to {file_path}")
 
 # Создание GUI
 root = tk.Tk()
@@ -87,7 +109,13 @@ button_browse.grid(row=0, column=2, padx=5, pady=5)
 button_transcribe = tk.Button(frame, text="Transcribe", command=transcribe)
 button_transcribe.grid(row=1, column=0, columnspan=3, pady=10)
 
+progress_bar = ttk.Progressbar(frame, orient=tk.HORIZONTAL, mode='determinate')
+progress_bar.grid(row=2, column=0, columnspan=3, pady=10, sticky="ew")
+
+button_save = tk.Button(frame, text="Save Transcription", command=save_to_file)
+button_save.grid(row=3, column=0, columnspan=3, pady=10)
+
 text_output = scrolledtext.ScrolledText(frame, wrap=tk.WORD, width=60, height=20)
-text_output.grid(row=2, column=0, columnspan=3, pady=10)
+text_output.grid(row=4, column=0, columnspan=3, pady=10)
 
 root.mainloop()
