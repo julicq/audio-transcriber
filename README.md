@@ -27,8 +27,9 @@ The Audio Transcriber is a simple Python program designed to transcribe audio fi
 ## Dependencies
 - [Vosk](https://github.com/alphacep/vosk-api): Speech recognition library.
 - [Pydub](https://github.com/jiaaro/pydub): Audio processing library.
-- [NLTK](https://www.nltk.org/): Natural Language Toolkit for sentence tokenization.
-- [Razdel](https://github.com/natasha/razdel): Russian sentence segmentation library.
+- [NLTK](https://www.nltk.org/): Natural Language Toolkit for sentence tokenization. - REMOVED
+- [Razdel](https://github.com/natasha/razdel): Russian sentence segmentation library. - REMOVED
+- [PyQT5](https://pypi.org/project/PyQt5): UI added
 
 ## Contributing
 Contributions are welcome! If you'd like to contribute to the project, please fork the repository and submit a pull request with your changes.
